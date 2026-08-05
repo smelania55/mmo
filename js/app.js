@@ -1,6 +1,26 @@
-const PRODUCTS_SOURCE = "/produse_2performant.json?v=" + Date.now();
+/* =====================================================
+   CALEA DE BAZĂ A SITE-ULUI
 
-const BLOG_SOURCE = "/articole_blog.json?v=" + Date.now();
+   GitHub Pages:
+   https://smelania55.github.io/mmo/
+
+   Hostico:
+   https://www.mieredemanuka.com/
+===================================================== */
+
+const APP_BASE = window.location.hostname.endsWith("github.io")
+  ? "/mmo"
+  : "";
+
+const PRODUCTS_SOURCE =
+  `${APP_BASE}/produse_2performant.json?v=${Date.now()}`;
+
+const BLOG_SOURCE =
+  `${APP_BASE}/articole_blog.json?v=${Date.now()}`;
+
+/* =====================================================
+   DATELE SITE-ULUI
+===================================================== */
 
 let allProducts = [];
 let allArticles = [];
@@ -33,6 +53,32 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function getLocalPath(path) {
+  if (typeof path !== "string" || !path.trim()) {
+    return "";
+  }
+
+  const cleanPath = path.trim();
+
+  if (
+    cleanPath.startsWith("http://") ||
+    cleanPath.startsWith("https://") ||
+    cleanPath.startsWith("data:")
+  ) {
+    return cleanPath;
+  }
+
+  if (cleanPath.startsWith(APP_BASE + "/")) {
+    return cleanPath;
+  }
+
+  if (cleanPath.startsWith("/")) {
+    return `${APP_BASE}${cleanPath}`;
+  }
+
+  return `${APP_BASE}/${cleanPath}`;
 }
 
 /* =====================================================
@@ -68,7 +114,9 @@ async function loadAllData() {
     }
 
     if (!Array.isArray(allArticles)) {
-      throw new Error("Fișierul articole_blog.json nu conține o listă validă.");
+      throw new Error(
+        "Fișierul articole_blog.json nu conține o listă validă.",
+      );
     }
 
     dataLoaded = true;
@@ -98,7 +146,9 @@ async function loadAllData() {
 function displayGridContent() {
   const grid = document.getElementById("productsGrid");
 
-  const dynamicTitle = document.getElementById("sectionDynamicTitle");
+  const dynamicTitle = document.getElementById(
+    "sectionDynamicTitle",
+  );
 
   const searchInput = document.getElementById("searchInput");
 
@@ -107,12 +157,15 @@ function displayGridContent() {
   }
 
   if (!dataLoaded) {
-    grid.innerHTML = '<div class="loading">Se încarcă catalogul...</div>';
+    grid.innerHTML =
+      '<div class="loading">Se încarcă catalogul...</div>';
 
     return;
   }
 
-  const searchTerm = searchInput ? searchInput.value.toLowerCase().trim() : "";
+  const searchTerm = searchInput
+    ? searchInput.value.toLowerCase().trim()
+    : "";
 
   /* ===================================================
      ARTICOLE BLOG
@@ -125,14 +178,19 @@ function displayGridContent() {
 
     const filteredArticles = allArticles.filter((article) => {
       const title =
-        typeof article.title === "string" ? article.title.toLowerCase() : "";
+        typeof article.title === "string"
+          ? article.title.toLowerCase()
+          : "";
 
       const excerpt =
         typeof article.excerpt === "string"
           ? article.excerpt.toLowerCase()
           : "";
 
-      return title.includes(searchTerm) || excerpt.includes(searchTerm);
+      return (
+        title.includes(searchTerm) ||
+        excerpt.includes(searchTerm)
+      );
     });
 
     if (filteredArticles.length === 0) {
@@ -147,36 +205,52 @@ function displayGridContent() {
 
     grid.innerHTML = filteredArticles
       .map((article) => {
-        const articleTitle = article.title || "Articol";
+        const articleTitle =
+          article.title || "Articol";
 
         const articleSlug =
           typeof article.slug === "string"
-            ? article.slug.trim().replace(/^\/+|\/+$/g, "")
+            ? article.slug
+                .trim()
+                .replace(/^\/+|\/+$/g, "")
             : "";
 
         if (!articleSlug) {
-          console.warn("Articol fără slug valid:", articleTitle);
+          console.warn(
+            "Articol fără slug valid:",
+            articleTitle,
+          );
 
           return "";
         }
 
-        const articleUrl = `/blog/${encodeURIComponent(articleSlug)}`;
+        const articleUrl =
+          `${APP_BASE}/blog/${encodeURIComponent(
+            articleSlug,
+          )}`;
 
-        const articleImage =
-          article.image || "/imagini/miere-de-manuka-proprietati.webp";
+        const articleImage = getLocalPath(
+          article.image ||
+            "/imagini/miere-de-manuka-proprietati.webp",
+        );
 
-        const altText = article.alt || articleTitle;
+        const altText =
+          article.alt || articleTitle;
 
-        const titleText = article.titleImagine || articleTitle;
+        const titleText =
+          article.titleImagine || articleTitle;
 
-        const articleExcerpt = article.excerpt || "";
+        const articleExcerpt =
+          article.excerpt || "";
 
         return `
           <article class="product-card">
 
             <a
               href="${articleUrl}"
-              aria-label="Citește articolul ${escapeHtml(articleTitle)}"
+              aria-label="Citește articolul ${escapeHtml(
+                articleTitle,
+              )}"
             >
               <img
                 src="${escapeHtml(articleImage)}"
@@ -238,14 +312,19 @@ function displayGridContent() {
 
   const filteredProducts = allProducts.filter((product) => {
     const title =
-      typeof product.title === "string" ? product.title.toLowerCase() : "";
+      typeof product.title === "string"
+        ? product.title.toLowerCase()
+        : "";
 
     const description =
       typeof product.description === "string"
         ? product.description.toLowerCase()
         : "";
 
-    return title.includes(searchTerm) || description.includes(searchTerm);
+    return (
+      title.includes(searchTerm) ||
+      description.includes(searchTerm)
+    );
   });
 
   if (filteredProducts.length === 0) {
@@ -260,23 +339,33 @@ function displayGridContent() {
 
   grid.innerHTML = filteredProducts
     .map((product) => {
-      const productTitle = product.title || "Produs fără denumire";
+      const productTitle =
+        product.title || "Produs fără denumire";
 
-      const productImage =
+      const productImage = getLocalPath(
         product.image_urls ||
-        product.image ||
-        "/imagini/miere-de-manuka-proprietati.webp";
+          product.image ||
+          "/imagini/miere-de-manuka-proprietati.webp",
+      );
 
       const productSlug =
-        typeof product.slug === "string" && product.slug.trim()
-          ? product.slug.trim().replace(/^\/+|\/+$/g, "")
+        typeof product.slug === "string" &&
+        product.slug.trim()
+          ? product.slug
+              .trim()
+              .replace(/^\/+|\/+$/g, "")
           : createProductSlug(productTitle);
 
-      const productUrl = `/${encodeURIComponent(productSlug)}`;
+      const productUrl =
+        `${APP_BASE}/${encodeURIComponent(
+          productSlug,
+        )}`;
 
-      const altText = product.alt || productTitle;
+      const altText =
+        product.alt || productTitle;
 
-      const titleText = product.titleImagine || productTitle;
+      const titleText =
+        product.titleImagine || productTitle;
 
       const productPrice =
         product.price !== undefined &&
@@ -290,7 +379,9 @@ function displayGridContent() {
 
           <a
             href="${productUrl}"
-            aria-label="Vezi produsul ${escapeHtml(productTitle)}"
+            aria-label="Vezi produsul ${escapeHtml(
+              productTitle,
+            )}"
           >
             <img
               src="${escapeHtml(productImage)}"
@@ -348,9 +439,11 @@ function initializeSearch() {
     return;
   }
 
-  const searchInput = document.getElementById("searchInput");
+  const searchInput =
+    document.getElementById("searchInput");
 
-  const searchButton = document.getElementById("searchButton");
+  const searchButton =
+    document.getElementById("searchButton");
 
   if (!searchInput) {
     return;
@@ -362,26 +455,34 @@ function initializeSearch() {
     displayGridContent();
   });
 
-  searchInput.addEventListener("keydown", (event) => {
-    if (event.key !== "Enter") {
-      return;
-    }
+  searchInput.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key !== "Enter") {
+        return;
+      }
 
-    event.preventDefault();
-    executeSearch();
-  });
+      event.preventDefault();
+      executeSearch();
+    },
+  );
 
   if (searchButton) {
-    searchButton.addEventListener("click", executeSearch);
+    searchButton.addEventListener(
+      "click",
+      executeSearch,
+    );
   }
 
   checkUrlForSearch();
 }
 
 function executeSearch() {
-  const searchInput = document.getElementById("searchInput");
+  const searchInput =
+    document.getElementById("searchInput");
 
-  const gridSection = document.getElementById("blogSection");
+  const gridSection =
+    document.getElementById("blogSection");
 
   if (!searchInput) {
     return;
@@ -390,7 +491,10 @@ function executeSearch() {
   /*
    * Pe homepage filtrăm direct.
    */
-  if (document.getElementById("productsGrid")) {
+
+  if (
+    document.getElementById("productsGrid")
+  ) {
     currentView = "produse";
 
     updateViewButtons();
@@ -407,13 +511,18 @@ function executeSearch() {
   }
 
   /*
-   * Pe articol sau produs trimitem
-   * utilizatorul pe homepage.
+   * Pe articol sau produs trimitem utilizatorul
+   * pe homepage și transmitem termenul căutat.
    */
-  const searchValue = searchInput.value.trim();
+
+  const searchValue =
+    searchInput.value.trim();
 
   if (searchValue) {
-    window.location.href = `/?search=${encodeURIComponent(searchValue)}`;
+    window.location.href =
+      `${APP_BASE}/?search=${encodeURIComponent(
+        searchValue,
+      )}`;
   }
 }
 
@@ -422,15 +531,20 @@ function executeSearch() {
 ===================================================== */
 
 function checkUrlForSearch() {
-  const searchInput = document.getElementById("searchInput");
+  const searchInput =
+    document.getElementById("searchInput");
 
   if (!searchInput) {
     return;
   }
 
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams =
+    new URLSearchParams(
+      window.location.search,
+    );
 
-  const searchParam = urlParams.get("search");
+  const searchParam =
+    urlParams.get("search");
 
   if (!searchParam) {
     return;
@@ -442,7 +556,8 @@ function checkUrlForSearch() {
   updateViewButtons();
   displayGridContent();
 
-  const gridSection = document.getElementById("blogSection");
+  const gridSection =
+    document.getElementById("blogSection");
 
   if (gridSection) {
     setTimeout(() => {
@@ -458,80 +573,119 @@ function checkUrlForSearch() {
    BUTOANE PRODUSE / BLOG
 ===================================================== */
 
-const showProductsBtn = document.getElementById("showProductsBtn");
+const showProductsBtn =
+  document.getElementById(
+    "showProductsBtn",
+  );
 
-const showBlogBtn = document.getElementById("showBlogBtn");
+const showBlogBtn =
+  document.getElementById(
+    "showBlogBtn",
+  );
 
 function updateViewButtons() {
   if (showProductsBtn) {
-    showProductsBtn.classList.toggle("active", currentView === "produse");
+    showProductsBtn.classList.toggle(
+      "active",
+      currentView === "produse",
+    );
   }
 
   if (showBlogBtn) {
-    showBlogBtn.classList.toggle("active", currentView === "blog");
+    showBlogBtn.classList.toggle(
+      "active",
+      currentView === "blog",
+    );
   }
 }
 
 if (showProductsBtn) {
-  showProductsBtn.addEventListener("click", () => {
-    currentView = "produse";
-    updateViewButtons();
-    displayGridContent();
-  });
+  showProductsBtn.addEventListener(
+    "click",
+    () => {
+      currentView = "produse";
+      updateViewButtons();
+      displayGridContent();
+    },
+  );
 }
 
 if (showBlogBtn) {
-  showBlogBtn.addEventListener("click", () => {
-    currentView = "blog";
-    updateViewButtons();
-    displayGridContent();
-  });
-}
-
-/* =====================================================
-   BUTOANELE DIN HEADERUL VECHI
-===================================================== */
-
-document.querySelectorAll("[data-scroll]").forEach((button) => {
-  button.addEventListener("click", (event) => {
-    const targetId = event.currentTarget.getAttribute("data-scroll");
-
-    const targetSection = document.getElementById(targetId);
-
-    if (!targetSection) {
-      return;
-    }
-
-    if (targetId === "blogSection") {
+  showBlogBtn.addEventListener(
+    "click",
+    () => {
       currentView = "blog";
       updateViewButtons();
       displayGridContent();
-    }
+    },
+  );
+}
 
-    targetSection.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
+/* =====================================================
+   BUTOANELE DE NAVIGARE CU DATA-SCROLL
+===================================================== */
+
+document
+  .querySelectorAll("[data-scroll]")
+  .forEach((button) => {
+    button.addEventListener(
+      "click",
+      (event) => {
+        const targetId =
+          event.currentTarget.getAttribute(
+            "data-scroll",
+          );
+
+        const targetSection =
+          document.getElementById(
+            targetId,
+          );
+
+        if (!targetSection) {
+          return;
+        }
+
+        if (
+          targetId === "blogSection"
+        ) {
+          currentView = "blog";
+          updateViewButtons();
+          displayGridContent();
+        }
+
+        targetSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      },
+    );
   });
-});
 
 /* =====================================================
    PORNIRE
 ===================================================== */
 
-window.addEventListener("DOMContentLoaded", () => {
-  loadAllData();
+window.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    loadAllData();
 
-  /*
-   * Dacă header-ul este deja în pagină.
-   */
-  initializeSearch();
-});
+    /*
+     * Dacă header-ul există deja în pagină,
+     * inițializăm căutarea imediat.
+     */
+
+    initializeSearch();
+  },
+);
 
 /*
- * Header-ul este încărcat dinamic
- * de layout.js.
+ * Header-ul este încărcat dinamic de layout.js.
  */
-document.addEventListener("layoutLoaded", () => {
-  initializeSearch();
-});
+
+document.addEventListener(
+  "layoutLoaded",
+  () => {
+    initializeSearch();
+  },
+);
