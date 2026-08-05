@@ -1,8 +1,11 @@
 /* =====================================================
-   CALEA DE BAZĂ A SITE-ULUI
+   CONFIGURAREA CĂII DE BAZĂ
 
-   GitHub Pages: /mmo
-   Hostico:      rădăcina domeniului
+   GitHub Pages:
+   https://smelania55.github.io/mmo/
+
+   Hostico:
+   https://www.mieredemanuka.com/
 ===================================================== */
 
 const SITE_BASE = window.location.hostname.endsWith("github.io")
@@ -10,23 +13,25 @@ const SITE_BASE = window.location.hostname.endsWith("github.io")
   : "";
 
 /* =====================================================
-   ÎNCĂRCAREA COMPONENTELOR
+   ÎNCĂRCAREA COMPONENTELOR HTML
 ===================================================== */
 
 async function loadComponent(targetId, componentPath) {
   const target = document.getElementById(targetId);
 
   if (!target) {
-    console.warn(`Lipsește elementul #${targetId}`);
+    console.warn(`Elementul #${targetId} nu există în această pagină.`);
     return;
   }
 
   try {
-    const response = await fetch(`${SITE_BASE}/${componentPath}`);
+    const componentUrl = `${SITE_BASE}/${componentPath}`;
+
+    const response = await fetch(componentUrl);
 
     if (!response.ok) {
       throw new Error(
-        `${componentPath} nu s-a încărcat. Cod HTTP: ${response.status}`,
+        `Componenta ${componentPath} nu s-a încărcat. Cod HTTP: ${response.status}`,
       );
     }
 
@@ -41,19 +46,36 @@ async function loadComponent(targetId, componentPath) {
 
 /* =====================================================
    CORECTAREA LINKURILOR INTERNE PE GITHUB PAGES
+
+   Exemplu:
+   /categorie/mgo
+
+   devine pe GitHub:
+   /mmo/categorie/mgo
+
+   Pe Hostico linkul rămâne:
+   /categorie/mgo
 ===================================================== */
 
 function correctInternalLinks(containerId) {
-  if (!SITE_BASE) return;
+  if (!SITE_BASE) {
+    return;
+  }
 
   const container = document.getElementById(containerId);
 
-  if (!container) return;
+  if (!container) {
+    return;
+  }
 
   container.querySelectorAll('a[href^="/"]').forEach((link) => {
     const href = link.getAttribute("href");
 
-    if (!href || href.startsWith(`${SITE_BASE}/`)) {
+    if (!href) {
+      return;
+    }
+
+    if (href === SITE_BASE || href.startsWith(`${SITE_BASE}/`)) {
       return;
     }
 
@@ -62,7 +84,7 @@ function correctInternalLinks(containerId) {
 }
 
 /* =====================================================
-   PORNIRE
+   ÎNCĂRCAREA HEADERULUI, MENIULUI ȘI FOOTERULUI
 ===================================================== */
 
 async function loadLayout() {
@@ -74,7 +96,15 @@ async function loadLayout() {
   correctInternalLinks("site-menu");
   correctInternalLinks("site-footer");
 
+  /*
+   * Anunță app.js că headerul și câmpul de căutare
+   * au fost încărcate în pagină.
+   */
   document.dispatchEvent(new CustomEvent("layoutLoaded"));
 }
+
+/* =====================================================
+   PORNIRE
+===================================================== */
 
 window.addEventListener("DOMContentLoaded", loadLayout);
